@@ -1,0 +1,40 @@
+.search-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+.search-section input {
+  height: 45px;
+}
+
+.search-bar {
+  position: relative;
+  width: 700px;
+}
+
+.search-bar .form-control {
+  padding-left: 30px; /* Space for the icon */
+  padding-right: 40px; /* Space for the + button */
+  border: none;
+  border-radius: 25px;
+  background-color: #333;
+  color: white;
+}
+
+.search-bar .form-control::placeholder {
+  color: #bbb;
+}
+
+.search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: white;
+  height: 50px;
+}
+
+.add-post-btn {
+  font-size: 18px;
+  background-color: #007bff;
+}

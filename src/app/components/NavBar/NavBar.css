@@ -1,0 +1,35 @@
+.app-name {
+  font-size: 1.5rem;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 700;
+  margin-left: 4%;
+}
+
+.navbar {
+  background-color: #333;
+}
+
+.navbar .nav-link {
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 500;
+}
+
+.navbar .nav-link.active {
+  color: #f5b301;
+}
+
+.navbar .signin-name {
+  color: #2f0000;
+  margin-right: 30px;
+}
+
+.navbar .gap {
+  margin-right: 15px;
+}
+.navbar-collapse {
+  justify-content: flex-end;
+  margin-right: 0;
+  margin-left: 20px;
+}
