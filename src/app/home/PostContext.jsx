@@ -1,143 +1,133 @@
-import { createContext, useContext, useMemo, useState, useEffect } from "react";
-import PropTypes from "prop-types";
-import { database, auth } from "../lib/firebaseConfig";
-import { ref, set, push, onValue, remove } from "firebase/database";
-import { useAuthState } from "react-firebase-hooks/auth";
+"use client";
 
+import { ref, push, set, update, remove, onValue } from "firebase/database";
+import { auth, database } from "../lib/firebaseConfig"; // Adjust the import path if necessary
+import { useState, useEffect, useContext, createContext } from "react";
+
+// Context and Provider for Posts
 const PostContext = createContext();
 
-function PostProvider({ children }) {
+export const PostProvider = ({ children }) => {
   const [posts, setPosts] = useState([]);
   const [trash, setTrash] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [user] = useAuthState(auth); // Get the currently logged-in user
+  const [sortOption, setSortOption] = useState("date");
 
   useEffect(() => {
-    if (!user) return; // Exit if no user is logged in
-
-    const userPostsRef = ref(database, `users/${user.uid}/posts/`);
-    const userTrashRef = ref(database, `users/${user.uid}/trash/`);
-
-    // Fetch posts
-    onValue(userPostsRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const loadedPosts = Object.keys(data).map((key, index) => ({
-          id: key,
-          ...data[key],
-          index,
-        }));
+    const user = auth.currentUser;
+    if (user) {
+      // Fetch posts from Firebase
+      const postsRef = ref(database, `users/${user.uid}/notes`);
+      onValue(postsRef, (snapshot) => {
+        const data = snapshot.val();
+        const loadedPosts = data
+          ? Object.keys(data).map((key, index) => ({
+              id: key,
+              index,
+              ...data[key],
+            }))
+          : [];
         setPosts(loadedPosts);
-      } else {
-        setPosts([]);
-      }
-    });
+      });
 
-    // Fetch trash
-    onValue(userTrashRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const loadedTrash = Object.keys(data).map((key) => ({
-          id: key,
-          ...data[key],
-        }));
+      // Fetch trash from Firebase
+      const trashRef = ref(database, `users/${user.uid}/trash`);
+      onValue(trashRef, (snapshot) => {
+        const data = snapshot.val();
+        const loadedTrash = data
+          ? Object.keys(data).map((key, index) => ({
+              id: key,
+              index,
+              ...data[key],
+            }))
+          : [];
         setTrash(loadedTrash);
-      } else {
-        setTrash([]);
-      }
-    });
-  }, [user]);
+      });
+    }
+  }, []);
 
-  function handleAddPost(post) {
-    if (!user) return;
-    const userPostsRef = ref(database, `users/${user.uid}/posts/`);
-    const newPostRef = push(userPostsRef);
-    set(newPostRef, post);
-  }
+  const onAddPost = (post) => {
+    const user = auth.currentUser;
+    if (user) {
+      const userPostsRef = ref(database, `users/${user.uid}/notes`);
+      const newPostRef = push(userPostsRef); // Generate a new post ID
+      set(newPostRef, post);
+    }
+  };
 
-  function handleUpdatePost(id, updatedPost) {
-    if (!user) return;
-    const postRef = ref(database, `users/${user.uid}/posts/${id}`);
-    set(postRef, updatedPost);
-  }
+  const onUpdatePost = (id, updatedPost) => {
+    const user = auth.currentUser;
+    if (user) {
+      const postRef = ref(database, `users/${user.uid}/notes/${id}`);
+      update(postRef, updatedPost); // Update post data in Firebase
+    }
+  };
 
-  function handleMoveToTrash(id) {
-    if (!user) return;
-    const postRef = ref(database, `users/${user.uid}/posts/${id}`);
-    const trashRef = ref(database, `users/${user.uid}/trash/${id}`);
+  const onMoveToTrash = (id) => {
+    const user = auth.currentUser;
+    if (user) {
+      const postRef = ref(database, `users/${user.uid}/notes/${id}`);
+      const trashRef = ref(database, `users/${user.uid}/trash/${id}`);
 
-    // Move post to trash
-    onValue(postRef, (snapshot) => {
-      const post = snapshot.val();
-      if (post) {
-        set(trashRef, post).then(() => remove(postRef));
-      }
-    });
-  }
+      // Move post to trash and delete from notes
+      onValue(postRef, (snapshot) => {
+        const post = snapshot.val();
+        if (post) {
+          set(trashRef, post) // Add post to trash
+            .then(() => remove(postRef)); // Remove from notes after moving to trash
+        }
+      });
+    }
+  };
 
-  function handlePermanentlyDelete(id) {
-    if (!user) return;
-    const trashRef = ref(database, `users/${user.uid}/trash/${id}`);
-    remove(trashRef);
-  }
+  const onRestorePost = (id) => {
+    const user = auth.currentUser;
+    if (user) {
+      const trashRef = ref(database, `users/${user.uid}/trash/${id}`);
+      const postRef = ref(database, `users/${user.uid}/notes/${id}`);
 
-  function handleRestorePost(id) {
-    if (!user) return;
-    const trashRef = ref(database, `users/${user.uid}/trash/${id}`);
-    const postsRef = ref(database, `users/${user.uid}/posts/`);
-    const postIndex = posts.length;
+      // Move post from trash back to notes
+      onValue(trashRef, (snapshot) => {
+        const post = snapshot.val();
+        if (post) {
+          set(postRef, post) // Add back to notes
+            .then(() => remove(trashRef)); // Remove from trash after restoring
+        }
+      });
+    }
+  };
 
-    // Move post back to posts
-    onValue(trashRef, (snapshot) => {
-      const post = snapshot.val();
-      if (post) {
-        const newPostRef = push(postsRef);
-        set(newPostRef, { ...post, index: postIndex }).then(() =>
-          remove(trashRef)
-        );
-      }
-    });
-  }
+  const onPermanentlyDelete = (id) => {
+    const user = auth.currentUser;
+    if (user) {
+      const trashRef = ref(database, `users/${user.uid}/trash/${id}`);
+      remove(trashRef); // Permanently remove the post from trash
+    }
+  };
 
-  const searchedPosts = useMemo(
-    () =>
-      searchQuery.length > 0
-        ? posts.filter((post) =>
-            `${post.title} ${post.body}`
-              .toLowerCase()
-              .includes(searchQuery.toLowerCase())
-          )
-        : posts,
-    [posts, searchQuery]
+  return (
+    <PostContext.Provider
+      value={{
+        posts,
+        trash,
+        sortOption,
+        setSortOption,
+        onAddPost,
+        onUpdatePost,
+        onMoveToTrash,
+        onRestorePost,
+        onPermanentlyDelete,
+      }}
+    >
+      {children}
+    </PostContext.Provider>
   );
-
-  const value = useMemo(() => {
-    return {
-      posts: searchedPosts,
-      trash,
-      onAddPost: handleAddPost,
-      onUpdatePost: handleUpdatePost,
-      onMoveToTrash: handleMoveToTrash,
-      onPermanentlyDelete: handlePermanentlyDelete,
-      onRestorePost: handleRestorePost,
-      searchQuery,
-      setSearchQuery,
-    };
-  }, [searchedPosts, trash, searchQuery, posts]);
-
-  return <PostContext.Provider value={value}>{children}</PostContext.Provider>;
-}
-
-PostProvider.propTypes = {
-  children: PropTypes.node.isRequired,
 };
 
-function usePosts() {
+// Custom hook to use the PostContext
+export const usePosts = () => {
   const context = useContext(PostContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error("usePosts must be used within a PostProvider");
   }
   return context;
-}
-
-export { PostProvider, usePosts };
+};

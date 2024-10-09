@@ -1,15 +1,17 @@
+/* Search Section */
 .search-section {
   display: flex;
   justify-content: center;
   margin-bottom: 20px;
 }
+
 .search-section input {
   height: 45px;
 }
 
 .search-bar {
   position: relative;
-  width: 700px;
+  width: 700px; /* Default width for larger screens */
 }
 
 .search-bar .form-control {
@@ -37,4 +39,60 @@
 .add-post-btn {
   font-size: 18px;
   background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  padding: 10px 20px;
+}
+
+/* Responsive Styles */
+
+/* Mobile screens (up to 576px) */
+@media (max-width: 576px) {
+  .search-bar {
+    width: 90%; /* Make the search bar more compact on small screens */
+  }
+
+  .add-post-btn {
+    font-size: 16px; /* Slightly smaller button text */
+    padding: 8px 16px; /* Adjust padding for smaller screens */
+  }
+
+  .search-section input {
+    height: 40px; /* Adjust height of the input on small screens */
+  }
+
+  .search-icon {
+    height: 40px; /* Adjust the icon size to match input */
+  }
+}
+
+/* Tablet screens (up to 768px) */
+@media (max-width: 768px) {
+  .search-bar {
+    width: 80%; /* Adjust width for tablet screens */
+  }
+
+  .add-post-btn {
+    font-size: 17px; /* Slightly smaller font for tablets */
+  }
+
+  .search-section input {
+    height: 42px; /* Adjust height on tablets */
+  }
+
+  .search-icon {
+    height: 42px; /* Adjust icon size for tablets */
+  }
+}
+
+/* Large desktop screens */
+@media (min-width: 992px) {
+  .search-bar {
+    width: 700px; /* Maintain the original width on large screens */
+  }
+
+  .add-post-btn {
+    font-size: 18px; /* Default size */
+  }
 }

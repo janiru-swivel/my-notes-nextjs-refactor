@@ -1,10 +1,9 @@
-import "./globals.css";
-import MainPage from "./MainPage";
+import MainPage from "./mainpage/page";
 
-export default function Main() {
+export default function defaults() {
   return (
     <>
-      <MainPage />
+      <MainPage />;
     </>
   );
 }

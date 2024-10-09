@@ -1,22 +1,23 @@
+"use client";
+
 import { useState } from "react";
 import { Navbar, Nav } from "react-bootstrap";
 import Link from "next/link";
-import userIconImage from "../../assets/user-icon.png";
+import userIconImage from "../../../../public/assets/user-icon.png";
+import { useRouter } from "next/navigation";
 import "./NavBar.css";
 import SideMenu from "../SideMenu/Sidemenu";
+import { auth } from "../../lib/firebaseConfig";
+import { signOut } from "firebase/auth";
 
 function NavBar() {
   const [show, setShow] = useState(false);
+  const router = useRouter();
 
   const handleClose = () => setShow(false);
-  const handleShow = () => setShow(true);
-
   const handleLogout = () => {
     alert("Logged out successfully");
-    // Redirect to the homepage
-    handleClose();
   };
-
   return (
     <>
       <Navbar className="bg-body-tertiary">
@@ -53,10 +54,10 @@ function NavBar() {
             </Nav.Item>
           </Nav>
           <Navbar.Text className="signin-name">
-            <span onClick={handleShow} style={{ cursor: "pointer" }}>
+            <span onClick={() => setShow(true)} style={{ cursor: "pointer" }}>
               <img
                 src={userIconImage}
-                alt="Sign In with Google"
+                // alt="Sign In with Google"
                 style={{ width: "30px", height: "auto", cursor: "pointer" }}
               />
             </span>

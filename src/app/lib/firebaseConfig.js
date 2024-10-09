@@ -1,22 +1,19 @@
 import { initializeApp } from "firebase/app";
-import { getDatabase } from "firebase/database";
 import { getAuth } from "firebase/auth";
+import { getDatabase } from "firebase/database";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAlUvWX4Z5GqyV3kvENI_DE0eIDuMIgJpI",
-  authDomain: "mynotesnextjs.firebaseapp.com",
-  projectId: "mynotesnextjs",
-  storageBucket: "mynotesnextjs.appspot.com",
-  messagingSenderId: "1037832102757",
-  appId: "1:1037832102757:web:d5d8911e6582714d18f78c",
-  measurementId: "G-560DTN7E0S",
+  apiKey: "AIzaSyD7OpQhepsw_yMfBDG-91a4sLN4sDpgG6c",
+  authDomain: "mynotes-6cdd7.firebaseapp.com",
+  projectId: "mynotes-6cdd7",
+  storageBucket: "mynotes-6cdd7.appspot.com",
+  messagingSenderId: "792156920177",
+  appId: "1:792156920177:web:d27c3045f6b6438ada7ed0",
+  measurementId: "G-6W7CTKV792",
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-
-// Initialize Database and Auth
-const database = getDatabase(app);
 const auth = getAuth(app);
+const database = getDatabase(app);
 
-export { database, auth };
+export { auth, database };

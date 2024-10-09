@@ -50,11 +50,11 @@ function FormAddPost({ toggleFormVisibility }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!title || !body) return;
-    const currentTime = new Date().toLocaleString(); // Add current time
+    const currentTime = new Date().toLocaleString();
     onAddPost({ title, body, lastUpdated: currentTime });
     setTitle("");
     setBody("");
-    toggleFormVisibility(); // Close the form after adding a post
+    toggleFormVisibility();
   };
 
   return (
@@ -123,7 +123,7 @@ function EditablePost({ post, onUpdate, onMoveToTrash }) {
 
   const handleSave = () => {
     if (title.trim() && body.trim()) {
-      const currentTime = new Date().toLocaleString(); // Add current time
+      const currentTime = new Date().toLocaleString();
       onUpdate(post.id, { title, body, lastUpdated: currentTime });
       setIsEditing(false);
     }
