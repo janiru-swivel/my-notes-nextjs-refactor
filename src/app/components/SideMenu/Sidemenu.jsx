@@ -5,11 +5,11 @@ import PropTypes from "prop-types";
 import "./SideMenu.css";
 
 function SideMenu({ onClose, onLogout }) {
-  const router = useRouter(); // Hook to access Next.js router
+  const router = useRouter();
 
   const handleLogoutClick = () => {
-    onLogout(); // Perform the logout action (Firebase logout or any auth provider)
-    router.push("/MainPage"); // Redirect to MainPage after logout
+    onLogout();
+    router.push("/mainpage");
   };
 
   return (

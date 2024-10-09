@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ref, set } from "firebase/database";
+import { updatePassword } from "firebase/auth";
 import { database, auth } from "../lib/firebaseConfig";
 import NavBar from "../components/NavBar/Navbar";
 import { useAuthState } from "react-firebase-hooks/auth";
@@ -20,9 +21,13 @@ function ProfilePage() {
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState("");
   const [user] = useAuthState(auth); // Get the currently logged-in user
+  const [fileUploaded, setFileUploaded] = useState(false); // Track if the profile picture has been uploaded
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
+    if (files) {
+      setFileUploaded(!!files.length); // Set fileUploaded to true if a file is uploaded
+    }
     setFormData({
       ...formData,
       [name]: files ? files[0] : value,
@@ -41,7 +46,7 @@ function ProfilePage() {
     return errors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validate();
     setErrors(validationErrors);
@@ -51,18 +56,26 @@ function ProfilePage() {
 
       const { name, email, password, age, phoneNumber } = formData;
 
-      // Save each field as a separate entity
+      // Update fields in the Firebase Realtime Database
       set(ref(database, `users/${user.uid}/name`), name);
       set(ref(database, `users/${user.uid}/email`), email);
-      set(ref(database, `users/${user.uid}/password`), password);
       set(ref(database, `users/${user.uid}/age`), age);
       set(ref(database, `users/${user.uid}/phoneNumber`), phoneNumber);
 
-      if (formData.profilePicture) {
-        // Optionally handle profile picture upload here
-      }
+      // Optionally handle profile picture upload here
 
-      setMessage("Profile updated successfully!");
+      // Update password in Firebase Authentication
+      if (formData.password) {
+        try {
+          await updatePassword(user, formData.password);
+          setMessage("Profile updated successfully, including password!");
+        } catch (error) {
+          setErrors({ password: "Error updating password: " + error.message });
+          return;
+        }
+      } else {
+        setMessage("Profile updated successfully!");
+      }
     }
   };
 
@@ -73,22 +86,41 @@ function ProfilePage() {
       <div className="max-w-md mx-auto p-6 bg-gray-100 rounded-lg shadow-md">
         <h2 className="text-xl font-bold text-center mb-4">Edit Profile</h2>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {/* Profile Picture Upload */}
           <div className="form-group">
-            <label className="font-semibold mb-1">Profile Picture</label>
-            <input
-              type="file"
-              name="profilePicture"
-              accept="image/*"
-              onChange={handleChange}
-              className="border rounded-md p-2"
-            />
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Profile Picture
+            </label>
+            <div className="relative">
+              <input
+                type="file"
+                name="profilePicture"
+                id="profilePicture"
+                accept="image/*"
+                onChange={handleChange}
+                className="hidden" // Hides the default input element
+              />
+              <label
+                htmlFor="profilePicture"
+                className={`block text-center cursor-pointer w-full py-2 px-4 rounded-lg shadow-md font-semibold transition duration-300 ease-in-out ${
+                  fileUploaded
+                    ? "bg-green-500 text-white hover:bg-green-600"
+                    : "bg-gray-300 text-gray-700 hover:bg-gray-400"
+                }`}
+              >
+                {fileUploaded ? "File Uploaded" : "Choose File"}
+              </label>
+            </div>
+            <p className="text-sm text-gray-500 mt-2">
+              Only images are allowed (JPG, PNG).
+            </p>
           </div>
 
           <div className="form-group">
-            <label className="font-semibold mb-1">Name</label>
             <input
               type="text"
               name="name"
+              placeholder="Name"
               value={formData.name}
               onChange={handleChange}
               className="border rounded-md p-2"
@@ -99,10 +131,10 @@ function ProfilePage() {
           </div>
 
           <div className="form-group">
-            <label className="font-semibold mb-1">Email</label>
             <input
               type="email"
               name="email"
+              placeholder="Email"
               value={formData.email}
               onChange={handleChange}
               className="border rounded-md p-2"
@@ -113,10 +145,10 @@ function ProfilePage() {
           </div>
 
           <div className="form-group">
-            <label className="font-semibold mb-1">Password</label>
             <input
               type="password"
               name="password"
+              placeholder="Password"
               value={formData.password}
               onChange={handleChange}
               className="border rounded-md p-2"
@@ -127,10 +159,10 @@ function ProfilePage() {
           </div>
 
           <div className="form-group">
-            <label className="font-semibold mb-1">Confirm Password</label>
             <input
               type="password"
               name="confirmPassword"
+              placeholder="Confirm Password"
               value={formData.confirmPassword}
               onChange={handleChange}
               className="border rounded-md p-2"
@@ -141,10 +173,10 @@ function ProfilePage() {
           </div>
 
           <div className="form-group">
-            <label className="font-semibold mb-1">Age</label>
             <input
               type="number"
               name="age"
+              placeholder="Age"
               value={formData.age}
               onChange={handleChange}
               className="border rounded-md p-2"
@@ -153,10 +185,10 @@ function ProfilePage() {
           </div>
 
           <div className="form-group">
-            <label className="font-semibold mb-1">Phone Number</label>
             <input
               type="tel"
               name="phoneNumber"
+              placeholder="Phone Number"
               value={formData.phoneNumber}
               onChange={handleChange}
               className="border rounded-md p-2"
@@ -177,6 +209,7 @@ function ProfilePage() {
           <p className="mt-4 text-green-600 font-bold text-center">{message}</p>
         )}
       </div>
+      <br />
     </>
   );
 }
