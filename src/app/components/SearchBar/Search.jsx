@@ -4,7 +4,7 @@ import { useState } from "react";
 import { usePosts } from "../../home/PostContext"; // Adjust the import path
 import Form from "react-bootstrap/Form";
 import Dropdown from "react-bootstrap/Dropdown";
-import "./searchStyles.css";
+import "./SearchStyles.css";
 
 function Search() {
   const { posts, setPosts, setSearchQuery, sortOption, setSortOption } =
