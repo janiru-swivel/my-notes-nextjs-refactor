@@ -1,4 +1,4 @@
-"use client"; // Make sure this file is used on the client-side
+"use client";
 
 import { ref, push, set, update, remove, onValue } from "firebase/database";
 import { auth, database } from "../lib/firebaseConfig";

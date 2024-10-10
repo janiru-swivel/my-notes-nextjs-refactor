@@ -7,8 +7,8 @@ import userIconImage from "../../../../public/assets/user-icon.png";
 import { useRouter } from "next/navigation";
 import "./NavBar.css";
 import SideMenu from "../SideMenu/Sidemenu";
-import { auth } from "../../lib/firebaseConfig";
-import { signOut } from "firebase/auth";
+// import { auth } from "../../lib/firebaseConfig";
+// import { signOut } from "firebase/auth";
 
 function NavBar() {
   const [show, setShow] = useState(false);
