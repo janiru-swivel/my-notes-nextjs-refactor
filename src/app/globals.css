@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  font-family: "Arial", sans-serif; /* Change to your preferred font */
+}
+
+body {
+  background-image: url("/assets/background_image.png");
+  background-size: cover;
+  background-position: center;
+  height: 100vh; /* Ensure the body takes the full height */
+  margin: 0; /* Remove default margin */
+}

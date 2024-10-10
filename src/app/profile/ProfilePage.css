@@ -1,0 +1,89 @@
+.edit-profile-container {
+  max-width: 450px;
+  margin: 40px auto;
+  padding: 30px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
+}
+
+.edit-profile-container:hover {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.edit-profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="password"],
+.form-group input[type="file"],
+.form-group input[type="number"],
+.form-group input[type="tel"] {
+  padding: 12px;
+  /* width: 100%; */
+  font-size: 1rem;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  transition: border-color 0.3s ease;
+}
+
+.form-group input:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+.error {
+  color: #ff4d4f;
+  font-size: 0.875em;
+  margin-top: 4px;
+}
+
+.save-button {
+  padding: 14px;
+  font-size: 1rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.save-button:hover {
+  background-color: #0056b3;
+}
+
+.success-message {
+  margin-top: 20px;
+  color: #28a745;
+  font-weight: bold;
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  .edit-profile-container {
+    padding: 20px;
+  }
+
+  .save-button {
+    font-size: 0.875rem;
+    padding: 12px;
+  }
+}
