@@ -1,7 +1,7 @@
-"use client";
+"use client"; // Make sure this file is used on the client-side
 
 import { ref, push, set, update, remove, onValue } from "firebase/database";
-import { auth, database } from "../lib/firebaseConfig"; // Adjust the import path if necessary
+import { auth, database } from "../lib/firebaseConfig";
 import { useState, useEffect, useContext, createContext } from "react";
 
 // Context and Provider for Posts
@@ -10,97 +10,149 @@ const PostContext = createContext();
 export const PostProvider = ({ children }) => {
   const [posts, setPosts] = useState([]);
   const [trash, setTrash] = useState([]);
+  const [searchQuery, setSearchQuery] = useState(""); // Added searchQuery
+  const [loading, setLoading] = useState(false); // Added loader for async operations
   const [sortOption, setSortOption] = useState("date");
 
+  // Fetch posts and trash on mount and when searchQuery changes
   useEffect(() => {
     const user = auth.currentUser;
+
     if (user) {
-      // Fetch posts from Firebase
+      setLoading(true);
       const postsRef = ref(database, `users/${user.uid}/notes`);
-      onValue(postsRef, (snapshot) => {
-        const data = snapshot.val();
-        const loadedPosts = data
-          ? Object.keys(data).map((key, index) => ({
-              id: key,
-              index,
-              ...data[key],
-            }))
-          : [];
-        setPosts(loadedPosts);
-      });
-
-      // Fetch trash from Firebase
       const trashRef = ref(database, `users/${user.uid}/trash`);
-      onValue(trashRef, (snapshot) => {
-        const data = snapshot.val();
-        const loadedTrash = data
-          ? Object.keys(data).map((key, index) => ({
-              id: key,
-              index,
-              ...data[key],
-            }))
-          : [];
-        setTrash(loadedTrash);
-      });
+
+      const fetchPosts = () => {
+        onValue(postsRef, (snapshot) => {
+          const data = snapshot.val();
+          const loadedPosts = data
+            ? Object.keys(data).map((key, index) => ({
+                id: key,
+                index,
+                ...data[key],
+              }))
+            : [];
+          const filteredPosts = loadedPosts.filter((post) =>
+            post.title.toLowerCase().includes(searchQuery.toLowerCase())
+          );
+          setPosts(sortPosts(filteredPosts, sortOption)); // Filter and Sort posts after fetching
+          setLoading(false); // Stop loading after fetching posts
+        });
+      };
+
+      const fetchTrash = () => {
+        onValue(trashRef, (snapshot) => {
+          const data = snapshot.val();
+          const loadedTrash = data
+            ? Object.keys(data).map((key, index) => ({
+                id: key,
+                index,
+                ...data[key],
+              }))
+            : [];
+          setTrash(loadedTrash);
+        });
+      };
+
+      fetchPosts();
+      fetchTrash();
     }
-  }, []);
+  }, [sortOption, searchQuery]); // Trigger fetch when sortOption or searchQuery changes
 
-  const onAddPost = (post) => {
-    const user = auth.currentUser;
-    if (user) {
-      const userPostsRef = ref(database, `users/${user.uid}/notes`);
-      const newPostRef = push(userPostsRef); // Generate a new post ID
-      set(newPostRef, post);
-    }
-  };
-
-  const onUpdatePost = (id, updatedPost) => {
-    const user = auth.currentUser;
-    if (user) {
-      const postRef = ref(database, `users/${user.uid}/notes/${id}`);
-      update(postRef, updatedPost); // Update post data in Firebase
-    }
-  };
-
-  const onMoveToTrash = (id) => {
-    const user = auth.currentUser;
-    if (user) {
-      const postRef = ref(database, `users/${user.uid}/notes/${id}`);
-      const trashRef = ref(database, `users/${user.uid}/trash/${id}`);
-
-      // Move post to trash and delete from notes
-      onValue(postRef, (snapshot) => {
-        const post = snapshot.val();
-        if (post) {
-          set(trashRef, post) // Add post to trash
-            .then(() => remove(postRef)); // Remove from notes after moving to trash
-        }
-      });
-    }
-  };
-
-  const onRestorePost = (id) => {
-    const user = auth.currentUser;
-    if (user) {
-      const trashRef = ref(database, `users/${user.uid}/trash/${id}`);
-      const postRef = ref(database, `users/${user.uid}/notes/${id}`);
-
-      // Move post from trash back to notes
-      onValue(trashRef, (snapshot) => {
-        const post = snapshot.val();
-        if (post) {
-          set(postRef, post) // Add back to notes
-            .then(() => remove(trashRef)); // Remove from trash after restoring
-        }
-      });
+  // Sorting posts based on the selected sort option
+  const sortPosts = (posts, option) => {
+    switch (option) {
+      case "date":
+        return posts.sort((a, b) => new Date(b.date) - new Date(a.date));
+      case "title":
+        return posts.sort((a, b) => a.title.localeCompare(b.title));
+      default:
+        return posts;
     }
   };
 
-  const onPermanentlyDelete = (id) => {
+  // Add a new post
+  const onAddPost = async (post) => {
     const user = auth.currentUser;
     if (user) {
-      const trashRef = ref(database, `users/${user.uid}/trash/${id}`);
-      remove(trashRef); // Permanently remove the post from trash
+      try {
+        const userPostsRef = ref(database, `users/${user.uid}/notes`);
+        const newPostRef = push(userPostsRef); // Generate a new post ID
+        await set(newPostRef, post);
+      } catch (error) {
+        console.error("Error adding post:", error);
+      }
+    }
+  };
+
+  // Update an existing post
+  const onUpdatePost = async (id, updatedPost) => {
+    const user = auth.currentUser;
+    if (user) {
+      try {
+        const postRef = ref(database, `users/${user.uid}/notes/${id}`);
+        await update(postRef, updatedPost); // Update post data in Firebase
+      } catch (error) {
+        console.error("Error updating post:", error);
+      }
+    }
+  };
+
+  // Move a post to the trash
+  const onMoveToTrash = async (id) => {
+    const user = auth.currentUser;
+    if (user) {
+      try {
+        const postRef = ref(database, `users/${user.uid}/notes/${id}`);
+        const trashRef = ref(database, `users/${user.uid}/trash/${id}`);
+
+        // Move post to trash and delete from notes
+        onValue(postRef, async (snapshot) => {
+          const post = snapshot.val();
+          if (post) {
+            await set(trashRef, post); // Add post to trash
+            await remove(postRef); // Remove from notes after moving to trash
+          }
+        });
+      } catch (error) {
+        console.error("Error moving post to trash:", error);
+      }
+    }
+  };
+
+  // Restore a post from trash back to notes
+  const onRestorePost = async (id) => {
+    const user = auth.currentUser;
+    if (user) {
+      try {
+        const trashRef = ref(database, `users/${user.uid}/trash/${id}`);
+        const postRef = ref(database, `users/${user.uid}/notes/${id}`);
+
+        // Move post from trash back to notes
+        onValue(trashRef, async (snapshot) => {
+          const post = snapshot.val();
+          if (post) {
+            await set(postRef, post); // Add back to notes
+            await remove(trashRef); // Remove from trash after restoring
+          }
+        });
+      } catch (error) {
+        console.error("Error restoring post:", error);
+      }
+    }
+  };
+
+  // Permanently delete a post from the trash
+  const onPermanentlyDelete = async (id) => {
+    const user = auth.currentUser;
+    if (user) {
+      try {
+        const trashRef = ref(database, `users/${user.uid}/trash/${id}`);
+        await remove(trashRef); // Permanently remove the post from trash
+      } catch (error) {
+        console.error("Error deleting post:", error);
+      }
     }
   };
 
@@ -109,8 +161,11 @@ export const PostProvider = ({ children }) => {
       value={{
         posts,
         trash,
+        loading, // Provide loading state
         sortOption,
-        setSortOption,
+        setSortOption, // Allow to set the sort option
+        searchQuery,
+        setSearchQuery, // Allow to set search query
         onAddPost,
         onUpdatePost,
         onMoveToTrash,

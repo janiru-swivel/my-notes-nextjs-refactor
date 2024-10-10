@@ -1,47 +1,24 @@
+"use client"; // Ensure client-side rendering for Next.js
+
 import { useState } from "react";
-import { usePosts } from "../../home/PostContext";
+import { usePosts } from "../../home/PostContext"; // Adjust the import path
 import Form from "react-bootstrap/Form";
 import Dropdown from "react-bootstrap/Dropdown";
 import "./searchStyles.css";
 
 function Search() {
-  const { posts, setPosts, setSearchQuery } = usePosts();
-  const [sortOption, setSortOption] = useState("");
+  const { posts, setPosts, setSearchQuery, sortOption, setSortOption } =
+    usePosts(); // Ensure setSearchQuery works
+  const [searchText, setSearchText] = useState("");
 
   const handleSearch = (e) => {
-    setSearchQuery(e.target.value);
+    const query = e.target.value;
+    setSearchText(query); // For local control
+    setSearchQuery(query); // This will update the search query in context
   };
 
   const handleSort = (option) => {
-    setSortOption(option);
-    if (option === "dateAsc") {
-      sortByDateAsc();
-    } else if (option === "dateDesc") {
-      sortByDateDesc();
-    } else if (option === "title") {
-      sortByTitle();
-    }
-  };
-
-  const sortByDateAsc = () => {
-    const sortedPosts = [...posts].sort(
-      (a, b) => new Date(a.date) - new Date(b.date)
-    );
-    setPosts(sortedPosts);
-  };
-
-  const sortByDateDesc = () => {
-    const sortedPosts = [...posts].sort(
-      (a, b) => new Date(b.date) - new Date(a.date)
-    );
-    setPosts(sortedPosts);
-  };
-
-  const sortByTitle = () => {
-    const sortedPosts = [...posts].sort((a, b) =>
-      a.title.localeCompare(b.title)
-    );
-    setPosts(sortedPosts);
+    setSortOption(option); // Update sort option in context
   };
 
   return (
@@ -53,7 +30,8 @@ function Search() {
             placeholder="Search"
             className="me-2"
             aria-label="Search"
-            onChange={handleSearch}
+            value={searchText}
+            onChange={handleSearch} // This triggers the search
           />
         </div>
         <div className="sort-button">
@@ -64,11 +42,8 @@ function Search() {
                 `(${sortOption.charAt(0).toUpperCase() + sortOption.slice(1)})`}
             </Dropdown.Toggle>
             <Dropdown.Menu>
-              <Dropdown.Item onClick={() => handleSort("dateAsc")}>
-                Date (Ascending)
-              </Dropdown.Item>
-              <Dropdown.Item onClick={() => handleSort("dateDesc")}>
-                Date (Descending)
+              <Dropdown.Item onClick={() => handleSort("date")}>
+                Date
               </Dropdown.Item>
               <Dropdown.Item onClick={() => handleSort("title")}>
                 Title (A-Z)

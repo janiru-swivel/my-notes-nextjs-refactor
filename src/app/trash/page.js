@@ -4,9 +4,37 @@ import { usePosts } from "../home/PostContext"; // Adjust the import path if nec
 import Navbar from "../components/NavBar/Navbar";
 import "../home/HomeStyles.css";
 import { PostProvider } from "../home/PostContext"; // Import the PostProvider
+import { useState } from "react";
 
+// Add loading and error states
 function TrashPage() {
-  const { trash, onPermanentlyDelete, onRestorePost } = usePosts();
+  const { trash, onPermanentlyDelete, onRestorePost, loading, error } =
+    usePosts();
+  const [deletingId, setDeletingId] = useState(null);
+
+  const handleDelete = (id) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to permanently delete this post?"
+    );
+    if (confirmDelete) {
+      setDeletingId(id);
+      onPermanentlyDelete(id);
+    }
+  };
+
+  const handleRestore = (id) => {
+    onRestorePost(id);
+  };
+
+  if (loading) {
+    return <div className="loading-spinner">Loading trash items...</div>; // Spinner or text while loading
+  }
+
+  if (error) {
+    return (
+      <div className="error-message">Error loading trash: {error.message}</div>
+    );
+  }
 
   return (
     <div>
@@ -23,13 +51,16 @@ function TrashPage() {
               <div className="action-buttons">
                 <button
                   className="trash-btn"
-                  onClick={() => onPermanentlyDelete(post.id)}
+                  onClick={() => handleDelete(post.id)}
+                  disabled={deletingId === post.id}
                 >
-                  Delete Permanently
+                  {deletingId === post.id
+                    ? "Deleting..."
+                    : "Delete Permanently"}
                 </button>
                 <button
                   className="edit-btn"
-                  onClick={() => onRestorePost(post.id)}
+                  onClick={() => handleRestore(post.id)}
                 >
                   Restore
                 </button>

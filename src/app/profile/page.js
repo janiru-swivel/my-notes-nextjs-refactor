@@ -20,13 +20,13 @@ function ProfilePage() {
 
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState("");
-  const [user] = useAuthState(auth); // Get the currently logged-in user
-  const [fileUploaded, setFileUploaded] = useState(false); // Track if the profile picture has been uploaded
+  const [user] = useAuthState(auth);
+  const [fileUploaded, setFileUploaded] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (files) {
-      setFileUploaded(!!files.length); // Set fileUploaded to true if a file is uploaded
+      setFileUploaded(!!files.length);
     }
     setFormData({
       ...formData,
