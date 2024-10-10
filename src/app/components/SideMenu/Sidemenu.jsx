@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import PropTypes from "prop-types";
-import "./SideMenu.css";
+import "./Sidemenu.css";
 
 function SideMenu({ onClose, onLogout }) {
   const router = useRouter();
