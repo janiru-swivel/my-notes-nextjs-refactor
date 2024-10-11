@@ -1,4 +1,3 @@
-// src/app/layout.js
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -12,7 +11,7 @@ export default function RootLayout({ children }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (!user) {
-        router.push("/loginpage");
+        router.push("/mainpage");
       } else {
         setLoading(false);
       }
@@ -22,7 +21,7 @@ export default function RootLayout({ children }) {
   }, [router]);
 
   if (loading) {
-    return <div>Loading...</div>; // Show a loading state while checking auth
+    return <div>Loading...</div>;
   }
 
   return (

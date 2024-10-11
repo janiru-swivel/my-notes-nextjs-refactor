@@ -10,7 +10,7 @@ const withAuth = (WrappedComponent) => {
     useEffect(() => {
       const unsubscribe = onAuthStateChanged(auth, (user) => {
         if (!user) {
-          router.push("/loginpage");
+          router.push("/mainpage");
         }
       });
 
