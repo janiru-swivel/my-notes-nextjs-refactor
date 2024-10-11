@@ -1,4 +1,4 @@
-"use client"; // This tells Next.js it's a Client Component
+"use client";
 import { useState } from "react";
 import {
   signInWithEmailAndPassword,
@@ -6,8 +6,8 @@ import {
   signInWithPopup,
   sendPasswordResetEmail,
 } from "firebase/auth";
-import { auth } from "../lib/firebaseConfig"; // Adjust path as necessary
-import { useRouter } from "next/navigation"; // Use Next.js router for navigation
+import { auth } from "../lib/firebaseConfig";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 function Login() {
@@ -18,7 +18,7 @@ function Login() {
 
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState("");
-  const router = useRouter(); // Use Next.js router for navigation
+  const router = useRouter();
   const googleProvider = new GoogleAuthProvider();
 
   const handleChange = (e) => {
