@@ -1,13 +1,11 @@
 "use client";
-import { useState } from "react";
-import {
-  createUserWithEmailAndPassword,
-  GoogleAuthProvider,
-  signInWithPopup,
-} from "firebase/auth";
+import { useState, useEffect } from "react";
+import { GoogleAuthProvider } from "firebase/auth";
 import { auth } from "../lib/firebaseConfig";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useDispatch, useSelector } from "react-redux";
+import { signupUser } from "../../redux/slices/authSlice"; // Redux actions
 
 export default function Signup() {
   const [formData, setFormData] = useState({
@@ -15,12 +13,14 @@ export default function Signup() {
     lastName: "",
     email: "",
     password: "",
+    errors: {},
   });
 
-  const [errors, setErrors] = useState({});
-  const [message, setMessage] = useState("");
+  const dispatch = useDispatch();
   const router = useRouter();
   const googleProvider = new GoogleAuthProvider();
+
+  const { loading, error, successMessage } = useSelector((state) => state.auth);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -42,33 +42,30 @@ export default function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validate();
-    setErrors(validationErrors);
+    setFormData({ ...formData, errors: validationErrors });
 
     if (Object.keys(validationErrors).length === 0) {
-      try {
-        await createUserWithEmailAndPassword(
-          auth,
-          formData.email,
-          formData.password
-        );
-        setMessage("User registered successfully");
-        router.push("/login"); // Redirect to login after successful signup
-      } catch (error) {
-        console.error("Error registering user:", error);
-        setMessage("Error registering user: " + error.message);
-      }
+      // Dispatch the signup action
+      dispatch(
+        signupUser({
+          email: formData.email,
+          password: formData.password,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+        })
+      );
     }
   };
 
-  const handleGoogleSignup = async () => {
-    try {
-      await signInWithPopup(auth, googleProvider);
-      router.push("/home"); // Redirect to home page after successful Google signup
-    } catch (error) {
-      console.error("Error signing up with Google:", error);
-      setMessage("Error signing up with Google: " + error.message);
+  // Handle redirect after successful signup
+  useEffect(() => {
+    if (successMessage) {
+      router.push({
+        pathname: "/login",
+        query: { successMessage },
+      });
     }
-  };
+  }, [successMessage, router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat bg-fixed bg-[url('/assets/background_image.png')]">
@@ -86,8 +83,10 @@ export default function Signup() {
               onChange={handleChange}
               className="w-full px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            {errors.firstName && (
-              <p className="text-red-500 text-xs mt-2">{errors.firstName}</p>
+            {formData.errors?.firstName && (
+              <p className="text-red-500 text-xs mt-2">
+                {formData.errors.firstName}
+              </p>
             )}
           </div>
 
@@ -102,8 +101,10 @@ export default function Signup() {
               onChange={handleChange}
               className="w-full px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            {errors.lastName && (
-              <p className="text-red-500 text-xs mt-2">{errors.lastName}</p>
+            {formData.errors?.lastName && (
+              <p className="text-red-500 text-xs mt-2">
+                {formData.errors.lastName}
+              </p>
             )}
           </div>
 
@@ -118,8 +119,10 @@ export default function Signup() {
               onChange={handleChange}
               className="w-full px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            {errors.email && (
-              <p className="text-red-500 text-xs mt-2">{errors.email}</p>
+            {formData.errors?.email && (
+              <p className="text-red-500 text-xs mt-2">
+                {formData.errors.email}
+              </p>
             )}
           </div>
 
@@ -132,8 +135,10 @@ export default function Signup() {
               onChange={handleChange}
               className="w-full px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            {errors.password && (
-              <p className="text-red-500 text-xs mt-2">{errors.password}</p>
+            {formData.errors?.password && (
+              <p className="text-red-500 text-xs mt-2">
+                {formData.errors.password}
+              </p>
             )}
           </div>
 
@@ -141,21 +146,12 @@ export default function Signup() {
             type="submit"
             className="w-full py-2 bg-gray-800 text-white font-semibold rounded-full hover:bg-black transition duration-300"
           >
-            Sign Up
+            {loading ? "Signing Up..." : "Sign Up"}
           </button>
         </form>
 
-        {/* <div className="social-login flex justify-center mt-4">
-          <img
-            src={signinWithGoogleImage}
-            alt="Sign In with Google"
-            className="w-1/2 cursor-pointer"
-            onClick={handleGoogleSignup}
-          />
-        </div>*/}
-
-        {message && (
-          <p className="text-center mt-4 text-green-500">{message}</p>
+        {error && (
+          <p className="text-center mt-4 text-red-500">{error.message}</p>
         )}
 
         <div className="text-center mt-6">

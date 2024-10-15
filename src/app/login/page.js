@@ -1,12 +1,11 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
-  signInWithEmailAndPassword,
-  GoogleAuthProvider,
-  signInWithPopup,
-  sendPasswordResetEmail,
-} from "firebase/auth";
-import { auth } from "../lib/firebaseConfig";
+  loginUser,
+  sendResetPassword,
+  clearMessage,
+} from "../../redux/slices/authSlice";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -16,10 +15,9 @@ function Login() {
     password: "",
   });
 
-  const [errors, setErrors] = useState({});
-  const [message, setMessage] = useState("");
+  const dispatch = useDispatch();
   const router = useRouter();
-  const googleProvider = new GoogleAuthProvider();
+  const { error, message, loading, user } = useSelector((state) => state.auth);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -34,49 +32,36 @@ function Login() {
     return errors;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     const validationErrors = validate();
-    setErrors(validationErrors);
 
     if (Object.keys(validationErrors).length === 0) {
-      try {
-        await signInWithEmailAndPassword(
-          auth,
-          formData.email,
-          formData.password
-        );
-        setMessage("User logged in successfully");
-        router.push("/home");
-      } catch (error) {
-        if (error.code === "auth/user-not-found") {
-          setErrors({
-            email: "You don't have an account registered to this email",
-          });
-        } else {
-          console.error("Error logging in user:", error);
-          setMessage("You don't have an account registered to this email");
-        }
-      }
+      dispatch(loginUser(formData))
+        .unwrap()
+        .then(() => {
+          router.push("/home"); // Redirect to home page after successful login
+        })
+        .catch(() => {
+          // Handle the error if needed, e.g., display a message
+        });
     }
   };
 
-  const handleForgotPassword = async () => {
+  const handleForgotPassword = () => {
     if (!formData.email) {
-      setErrors({
-        email: "Please enter your email address to reset password.",
-      });
+      // Dispatch error message for missing email
+      dispatch(clearMessage());
       return;
     }
-
-    try {
-      await sendPasswordResetEmail(auth, formData.email);
-      setMessage("Password reset email sent. Please check your inbox.");
-    } catch (error) {
-      console.error("Error sending password reset email:", error);
-      setMessage("Error sending password reset email: " + error.message);
-    }
+    dispatch(sendResetPassword(formData.email));
   };
+
+  useEffect(() => {
+    if (user) {
+      router.push("/home"); // Redirect if the user is already logged in
+    }
+  }, [user, router]);
 
   return (
     <div className="min-h-screen bg-cover bg-center bg-no-repeat bg-fixed flex items-center justify-center bg-[url('/assets/background_image.png')]">
@@ -94,9 +79,7 @@ function Login() {
               onChange={handleChange}
               className="w-full px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            {errors.email && (
-              <p className="text-red-500 text-xs mt-2">{errors.email}</p>
-            )}
+            {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
           </div>
 
           <div className="mb-4">
@@ -108,16 +91,14 @@ function Login() {
               onChange={handleChange}
               className="w-full px-4 py-2 border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            {errors.password && (
-              <p className="text-red-500 text-xs mt-2">{errors.password}</p>
-            )}
+            {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
           </div>
 
           <button
             type="submit"
             className="w-full py-2 bg-gray-800 text-white font-semibold rounded-full hover:bg-black transition duration-300"
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
