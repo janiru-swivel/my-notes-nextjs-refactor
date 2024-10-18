@@ -1,16 +1,25 @@
-"use client"; // Ensure this is a client component
+// src/app/trash/page.js
+"use client";
 
-import { usePosts } from "../home/PostContext"; // Adjust the import path if necessary
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import Navbar from "../components/NavBar/Navbar";
 import "../home/HomeStyles.css";
-import { PostProvider } from "../home/PostContext"; // Import the PostProvider
-import { useState } from "react";
-
-// Add loading and error states
+import {
+  fetchTrash,
+  selectTrash,
+  permanentlyDelete,
+  restorePost,
+} from "../features/postSlice";
 function TrashPage() {
-  const { trash, onPermanentlyDelete, onRestorePost, loading, error } =
-    usePosts();
+  const dispatch = useDispatch();
+  const trash = useSelector(selectTrash);
   const [deletingId, setDeletingId] = useState(null);
+
+  // Fetch trash data when component mounts
+  useEffect(() => {
+    dispatch(fetchTrash());
+  }, [dispatch]);
 
   const handleDelete = (id) => {
     const confirmDelete = window.confirm(
@@ -18,23 +27,13 @@ function TrashPage() {
     );
     if (confirmDelete) {
       setDeletingId(id);
-      onPermanentlyDelete(id);
+      dispatch(permanentlyDelete(id)).finally(() => setDeletingId(null));
     }
   };
 
   const handleRestore = (id) => {
-    onRestorePost(id);
+    dispatch(restorePost(id));
   };
-
-  if (loading) {
-    return <div className="loading-spinner">Loading trash items...</div>; // Spinner or text while loading
-  }
-
-  if (error) {
-    return (
-      <div className="error-message">Error loading trash: {error.message}</div>
-    );
-  }
 
   return (
     <div>
@@ -73,13 +72,4 @@ function TrashPage() {
   );
 }
 
-// Wrapper component to provide context
-function TrashPageWrapper() {
-  return (
-    <PostProvider>
-      <TrashPage />
-    </PostProvider>
-  );
-}
-
-export default TrashPageWrapper;
+export default TrashPage;
